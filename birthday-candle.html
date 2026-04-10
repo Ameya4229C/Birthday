@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Birthday Candle</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --candle-color: #f43f5e;
+            --candle-shadow: #9f1239;
+            --wick-color: #444;
+            --flame-inner: #fff;
+            --flame-mid: #fbbf24;
+            --flame-outer: #f97316;
+        }
+
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.5s ease;
+            overflow: hidden;
+        }
+
+
+        /* Adjust background glow when candle is on */
+        body.lit {
+            background-color: #1e1b4b;
+        }
+
+
+        .candle-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 300px;
+        }
+
+
+        /* The Candle Body */
+        .candle-body {
+            position: relative;
+            width: 60px;
+            height: 180px;
+            background: linear-gradient(to right, var(--candle-shadow), var(--candle-color), var(--candle-shadow));
+            border-radius: 8px 8px 4px 4px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+
+
+        /* Candle Stripes */
+        .candle-body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255,255,255,0.1),
+                rgba(255,255,255,0.1) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            border-radius: inherit;
+        }
+
+
+        /* The Wick */
+        .wick {
+            position: absolute;
+            bottom: 180px;
+            width: 4px;
+            height: 15px;
+            background-color: var(--wick-color);
+            border-radius: 2px;
+            z-index: 0;
+        }
+
+
+        /* The Flame */
+        .flame-container {
+            position: absolute;
+            bottom: 190px;
+            width: 30px;
+            height: 50px;
+            opacity: 0;
+            transform: scale(0);
+            transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+
+        .lit .flame-container {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+
+        .flame {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--flame-inner), var(--flame-mid), var(--flame-outer));
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 
+                0 0 20px var(--flame-outer),
+                0 0 40px rgba(249, 115, 22, 0.4),
+                0 0 60px rgba(249, 115, 22, 0.2);
+            animation: flicker 0.1s infinite alternate;
+        }
+
+
+        .flame::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: rgba(30, 58, 138, 0.5); 
+            filter: blur(2px);
+            border-radius: 50%;
+        }
+
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); }
+            25% { transform: translateX(-51%) scale(1.02) rotate(0deg); }
+            50% { transform: translateX(-50%) scale(0.98) rotate(1deg); }
+            75% { transform: translateX(-49%) scale(1.01) rotate(0deg); }
+            100% { transform: translateX(-50%) scale(1) rotate(-1deg); }
+        }
+
+
+        /* Controls */
+        .controls {
+            margin-top: 60px;
+            z-index: 10;
+        }
+
+
+        button {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+        button:hover {
+            background-color: #475569;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+
+        button:active {
+            transform: translateY(0);
+        }
+
+
+        .lit button {
+            background-color: #0ea5e9;
+        }
+
+
+        .status-text {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+
+        /* Plate/Base */
+        .plate {
+            width: 120px;
+            height: 10px;
+            background: #334155;
+            border-radius: 50%;
+            margin-top: -5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="candle-wrapper" id="candleWrapper">
+        <div class="flame-container">
+            <div class="flame"></div>
+        </div>
+        <div class="wick"></div>
+        <div class="candle-body"></div>
+        <div class="plate"></div>
+    </div>
+
+
+    <div class="controls">
+        <button id="toggleBtn" onclick="toggleFlame()">
+            <span id="btnIcon">🔥</span>
+            <span id="btnText">Light the Candle</span>
+        </button>
+    </div>
+
+
+    <div class="status-text" id="statusLabel">Off</div>
+
+
+    <script>
+        let isLit = false;
+        const body = document.body;
+        const btnText = document.getElementById('btnText');
+        const btnIcon = document.getElementById('btnIcon');
+        const statusLabel = document.getElementById('statusLabel');
+
+
+        function toggleFlame() {
+            isLit = !isLit;
+
+            if (isLit) {
+                body.classList.add('lit');
+                btnText.textContent = "Blow Out Candle";
+                btnIcon.textContent = "🌬️";
+                statusLabel.textContent = "Happy Birthday!";
+            } else {
+                body.classList.remove('lit');
+                btnText.textContent = "Light the Candle";
+                btnIcon.textContent = "🔥";
+                statusLabel.textContent = "Off";
+            }
+        }
+    </script>
+</body>
+</html>
